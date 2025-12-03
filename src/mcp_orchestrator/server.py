@@ -1,5 +1,5 @@
 """
-MCP Lazy Orchestrator
+Docker MCP Orchestrator
 
 A lightweight MCP server that manages Docker MCP servers on-demand,
 reducing token usage by only exposing orchestration tools and dynamically
@@ -11,7 +11,7 @@ context window tokens.
 
 Author: semenovsd
 License: CC BY-NC 4.0
-Repository: https://github.com/semenovsd/mcp-lazy-orchestrator
+Repository: https://github.com/semenovsd/docker-mcp-orchestrator
 """
 
 import asyncio
@@ -29,7 +29,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
-logger = logging.getLogger("mcp-lazy-orchestrator")
+logger = logging.getLogger("docker-mcp-orchestrator")
 
 # ============================================================================
 # Configuration
@@ -243,7 +243,7 @@ def get_server_tools(server_name: str) -> list[dict]:
 # ============================================================================
 
 mcp = FastMCP(
-    name="MCP Lazy Orchestrator",
+    name="Docker MCP Orchestrator",
     version="1.0.0",
     description=(
         "Lightweight orchestrator for Docker MCP servers. "
@@ -615,7 +615,7 @@ async def sync_state() -> str:
 
 def main():
     """Main entry point"""
-    logger.info("Starting MCP Lazy Orchestrator...")
+    logger.info("Starting Docker MCP Orchestrator...")
     
     # Initial sync
     enabled = get_enabled_servers()
