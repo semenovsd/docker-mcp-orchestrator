@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "orchestrator": {
+      "command": "python",
+      "args": ["-m", "mcp_orchestrator"],
+      "env": {},
+      "type": "stdio"
+    }
+  }
+}
