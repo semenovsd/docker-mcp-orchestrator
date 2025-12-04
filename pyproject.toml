@@ -1,27 +1,27 @@
-[build-system]
-requires = ["setuptools>=61.0", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[project]
+[tool.poetry]
 name = "docker-mcp-orchestrator"
 version = "0.1.0"
 description = "Docker MCP Orchestrator - Intelligent MCP Server Management System"
 readme = "README.md"
-requires-python = ">=3.11"
-dependencies = [
-    "mcp>=0.9.0",
-    "pydantic>=2.0.0",
-    "pyyaml>=6.0",
-    "aiofiles>=23.0.0",
-]
+authors = ["Your Name <your.email@example.com>"]
+packages = [{include = "orchestrator", from = "src"}]
 
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.0.0",
-    "pytest-asyncio>=0.21.0",
-    "black>=23.0.0",
-    "ruff>=0.1.0",
-]
+[tool.poetry.dependencies]
+python = "^3.11"
+mcp = ">=0.9.0"
+pydantic = ">=2.0.0"
+pyyaml = ">=6.0"
+aiofiles = ">=23.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=7.0.0"
+pytest-asyncio = ">=0.21.0"
+black = ">=23.0.0"
+ruff = ">=0.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.black]
 line-length = 100

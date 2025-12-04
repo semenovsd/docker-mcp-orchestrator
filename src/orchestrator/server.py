@@ -1,12 +1,13 @@
 """Main MCP Server for Orchestrator."""
 
 import asyncio
+import json
 import logging
 from typing import Any, Dict
 
 import yaml
 from mcp.server import Server
-from mcp.types import Tool
+from mcp.types import Tool, TextContent
 
 from .cache import MetadataCache
 from .connection_pool import MCPConnectionPool
@@ -204,9 +205,6 @@ class OrchestratorServer:
                     ]
 
                 # Format result for MCP
-                import json
-                from mcp.types import TextContent
-
                 # MCP expects list of CallToolResult with content array
                 if isinstance(result, list):
                     # Convert list items to JSON strings
@@ -261,11 +259,19 @@ class OrchestratorServer:
     async def run(self):
         """Run the server."""
         from mcp.server.stdio import stdio_server
+        from mcp.server.models import InitializationOptions
+        from mcp.types import ServerCapabilities
 
         async with stdio_server() as (read_stream, write_stream):
+            initialization_options = InitializationOptions(
+                server_name="docker-mcp-orchestrator",
+                server_version="0.1.0",
+                capabilities=ServerCapabilities(),
+            )
             await self.server.run(
                 read_stream,
                 write_stream,
+                initialization_options,
             )
 
 

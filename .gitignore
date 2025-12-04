@@ -4,27 +4,15 @@ __pycache__/
 *$py.class
 *.so
 .Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
 *.egg-info/
-.installed.cfg
-*.egg
-
-# Virtual environments
+dist/
+build/
 venv/
 env/
 ENV/
-.venv
+.venv/
+# Poetry
+poetry.lock
 
 # IDE
 .vscode/
@@ -33,24 +21,31 @@ ENV/
 *.swo
 *~
 
-# Logs
-*.log
-logs/
-
-# OS
-.DS_Store
-Thumbs.db
-
 # Testing
 .pytest_cache/
 .coverage
 htmlcov/
 .tox/
+.pytest_cache/
 
-# Mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
+# Documentation (generated)
+*.md.bak
 
-# Configuration (if contains secrets)
-# config/local.yaml
+# Git
+.git/
+
+# Docker
+.dockerignore
+
+# Temporary files
+*.tmp
+*.log
+*.bak
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+.cursor/*
+*.egg-info/

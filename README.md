@@ -17,68 +17,128 @@ Docker MCP Orchestrator — это интеллектуальная систем
 
 ## 📋 Требования
 
-- Python 3.11+
+- Docker и Docker Compose
 - Docker Desktop с установленным MCP Toolkit
 - MCP серверы, добавленные в Docker MCP Catalog
 
 ---
 
-## 🚀 Установка
+## 🚀 Установка и запуск
 
-### 1. Клонирование репозитория
+Проект запускается **ТОЛЬКО через Docker контейнер**. Управление зависимостями осуществляется через Poetry.
 
-```bash
-git clone <repository-url>
-cd docker-mcp-orchestrator
-```
-
-### 2. Установка зависимостей
+### 1. Сборка Docker образа
 
 ```bash
-pip install -r requirements.txt
+docker build -t docker-mcp-orchestrator .
 ```
 
-Или используя pip в режиме разработки:
+### 2. Запуск контейнера
 
 ```bash
-pip install -e .
+docker run -it --rm \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v $(pwd)/config:/app/config:ro \
+  docker-mcp-orchestrator
 ```
 
-### 3. Настройка конфигурации
+Или используя docker-compose:
 
-Конфигурация находится в `config/config.yaml`. Вы можете настроить:
+```bash
+docker-compose up -d
+```
 
-- TTL для кэширования
-- Таймауты для команд
-- Настройки proxy и connection pool
-- Уровень логирования
+### 3. Публикация образа в Docker Registry
+
+Образ уже опубликован в Docker Hub: `semenovsd/docker-mcp-orchestrator`
+
+**Доступные теги:**
+- `semenovsd/docker-mcp-orchestrator:latest` - последняя версия
+- `semenovsd/docker-mcp-orchestrator:0.1.0` - версия 0.1.0
+
+**Использование опубликованного образа:**
+
+```bash
+# Скачать и запустить образ из Docker Hub
+docker run -it --rm \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v $(pwd)/config:/app/config:ro \
+  semenovsd/docker-mcp-orchestrator:latest
+```
+
+**Для публикации новой версии:**
+
+```bash
+# Сборка образа
+docker build -t docker-mcp-orchestrator:latest .
+
+# Тегирование для публикации
+docker tag docker-mcp-orchestrator:latest semenovsd/docker-mcp-orchestrator:latest
+docker tag docker-mcp-orchestrator:latest semenovsd/docker-mcp-orchestrator:0.1.0
+
+# Публикация в Docker Hub
+docker push semenovsd/docker-mcp-orchestrator:latest
+docker push semenovsd/docker-mcp-orchestrator:0.1.0
+```
 
 ### 4. Добавление в Cursor
 
-Добавьте Orchestrator в конфигурацию Cursor MCP серверов:
-
-**Для Cursor** (`.cursor/mcp.json` или аналогичный файл):
+Добавьте Orchestrator в конфигурацию Cursor MCP серверов (`.cursor/mcp.json`):
 
 ```json
 {
   "mcpServers": {
     "docker-mcp-orchestrator": {
-      "command": "python",
-      "args": ["-m", "orchestrator"],
-      "cwd": "/path/to/docker-mcp-orchestrator"
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-v", "/var/run/docker.sock:/var/run/docker.sock",
+        "-v", "/path/to/docker-mcp-orchestrator/config:/app/config:ro",
+        "docker-mcp-orchestrator"
+      ]
     }
   }
 }
 ```
 
-Или используя абсолютный путь:
+Или используя опубликованный образ из Docker Hub:
 
 ```json
 {
   "mcpServers": {
     "docker-mcp-orchestrator": {
-      "command": "python",
-      "args": ["/absolute/path/to/docker-mcp-orchestrator/src/orchestrator/__main__.py"]
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-v", "/var/run/docker.sock:/var/run/docker.sock",
+        "-v", "/path/to/docker-mcp-orchestrator/config:/app/config:ro",
+        "semenovsd/docker-mcp-orchestrator:latest"
+      ]
+    }
+  }
+}
+```
+
+Или используя docker-compose:
+
+```json
+{
+  "mcpServers": {
+    "docker-mcp-orchestrator": {
+      "command": "docker-compose",
+      "args": [
+        "-f", "/path/to/docker-mcp-orchestrator/docker-compose.yml",
+        "exec",
+        "-T",
+        "orchestrator",
+        "python",
+        "-m",
+        "orchestrator"
+      ]
     }
   }
 }
@@ -154,23 +214,18 @@ pip install -e .
 
 ## 🤖 AI Prompt Rules
 
-Для правильной работы с Orchestrator добавьте правила в `.cursorrules` или аналогичный файл:
+**Файл `.cursorrules` уже создан** с кратким промптом (1 предложение) для экономии токенов.
 
-```markdown
-## Docker MCP Orchestrator Workflow
-
-При работе с MCP серверами:
-
-1. Всегда начинай с list_installed_servers()
-2. Изучи возможности через get_server_tools() и get_server_info()
-3. Настрой конфигурацию перед запуском (secret_set, config_set)
-4. Запусти серверы через start_servers()
-5. Добавь промпты в контекст (если предоставлены)
-6. Используй tools через call_tool() (НЕ напрямую!)
-7. Останови серверы через stop_servers() после завершения
+**Содержимое:**
+```
+Все вызовы tools от запущенных MCP серверов идут ТОЛЬКО через call_tool(tool_name, arguments). 
+Начинай с list_installed_servers(), настраивай конфигурацию перед запуском через start_servers(), 
+и обязательно добавляй промпты в контекст при запуске серверов.
 ```
 
-Полные правила находятся в `prompts/ai_rules.md`.
+**Перезапусти Cursor** для применения правил.
+
+**Полная документация**: `prompts/ai_rules.md` (для справки, не загружается автоматически)
 
 ---
 
@@ -234,6 +289,7 @@ docker-mcp-orchestrator/
 ├── src/
 │   └── orchestrator/
 │       ├── __init__.py
+│       ├── __main__.py            # Точка входа
 │       ├── server.py              # Основной MCP сервер
 │       ├── docker_client.py       # Docker MCP Toolkit клиент
 │       ├── cache.py                # Кэширование
@@ -241,27 +297,37 @@ docker-mcp-orchestrator/
 │       ├── proxy.py                # Proxy layer
 │       ├── prompt_manager.py       # Управление промптами
 │       ├── models.py               # Модели данных
+│       ├── exceptions.py           # Исключения
 │       ├── utils.py                # Утилиты
 │       └── tools/                  # Все tools
 ├── config/
 │   └── config.yaml                 # Конфигурация
 ├── prompts/
 │   └── ai_rules.md                 # AI правила
-├── tests/                           # Тесты
+├── Dockerfile                      # Docker образ
+├── docker-compose.yml              # Docker Compose конфигурация
+├── .dockerignore                   # Исключения для Docker
+├── .gitignore                      # Исключения для Git
 ├── README.md
-└── requirements.txt
+└── pyproject.toml                   # Poetry конфигурация
 ```
 
-### Запуск в режиме разработки
+### Управление зависимостями
+
+Проект использует **Poetry** для управления зависимостями. Все зависимости определены в `pyproject.toml`.
+
+Для обновления зависимостей:
 
 ```bash
-python -m orchestrator
+# Внутри Docker контейнера
+poetry lock
+poetry install
 ```
 
-### Тестирование
+### Сборка образа
 
 ```bash
-pytest tests/
+docker build -t docker-mcp-orchestrator .
 ```
 
 ---
@@ -285,9 +351,11 @@ pytest tests/
 
 ## 📚 Документация
 
-- [ARCHITECTURE_V2.md](./ARCHITECTURE_V2.md) - Детальная архитектура
+- [ARCHITECTURE_V2.md](./ARCHITECTURE_V2.md) - Детальная архитектура системы
 - [IMPLEMENTATION_PLAN_V2.md](./IMPLEMENTATION_PLAN_V2.md) - План реализации
-- [prompts/ai_rules.md](./prompts/ai_rules.md) - AI правила для работы
+- [DEPLOYMENT.md](./DEPLOYMENT.md) - Инструкции по развертыванию
+- [docker_mcp_commands.md](./docker_mcp_commands.md) - Полный список команд Docker MCP Toolkit
+- [prompts/ai_rules.md](./prompts/ai_rules.md) - AI правила для работы с Orchestrator
 
 ---
 
@@ -300,16 +368,19 @@ pytest tests/
 
 ## 📄 Лицензия
 
-[Указать лицензию]
+MIT License
 
 ---
 
 ## 🤝 Вклад
 
-[Инструкции по вкладу]
+Вклад приветствуется! Пожалуйста, создавайте issue или pull request для предложений и исправлений.
 
 ---
 
 ## 📞 Поддержка
 
-[Контактная информация]
+При возникновении проблем:
+1. Проверьте [DEPLOYMENT.md](./DEPLOYMENT.md) для инструкций по развертыванию
+2. Проверьте раздел "Устранение неполадок" в README
+3. Создайте issue в репозитории GitHub

@@ -3,7 +3,6 @@
 import asyncio
 import json
 import logging
-import subprocess
 from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
