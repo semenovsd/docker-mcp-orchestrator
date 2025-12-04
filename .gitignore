@@ -47,5 +47,5 @@ htmlcov/
 Thumbs.db
 
 # Project specific
-.cursor/*
+.cursor/
 *.egg-info/
